@@ -1,7 +1,7 @@
 function fazerLogin() {
     event.preventDefault()
     if (usuarioLogado()) {
-        window.location.href = '/paginas/produtos/produtos.html'
+        window.location.href = '/produtos'
         return
     }
 

@@ -13,8 +13,18 @@ function adicionarProduto() {
     };
 
     fetch('http://localhost:8080/produtos', options)
-        .then(response => alert(response.status))
+        .then(response => {
+            if (response.status === 200) {
+                fecharModal()
+            }
+        })
         .catch(err => console.error(err));
+}
+
+function fecharModal() {
+    const modalAddProdutoElement = document.getElementById('modal-adicionar-produto');
+    const modalAddProduto = bootstrap.Modal.getInstance(modalAddProdutoElement);
+    modalAddProduto.hide();
 }
 
 function initListeners() {
