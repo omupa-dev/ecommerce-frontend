@@ -1,4 +1,6 @@
-function adicionarProduto() {
+import { listarProdutosClient, salvarProdutoClient, removerProdutoClient } from "../client/produtos-client.js";
+
+async function adicionarProduto() {
     let produto = {
         "titulo": document.getElementById("adicionar-produto-titulo").value,
         "descricao": document.getElementById("adicionar-produto-descricao").value,
@@ -6,21 +8,15 @@ function adicionarProduto() {
         "qtdEstoque": parseInt(document.getElementById("adicionar-produto-quantidade").value)
     }
 
-    const options = {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(produto)
-    };
+    let err = await salvarProdutoClient(produto);
+    if (err !== null) {
+        // Pode adicionar uma mensagem de erro na tela aqui
+        return
+    }
 
-    fetch('http://localhost:8080/produtos', options)
-        .then(response => {
-            if (response.status === 200) {
-                carregarProdutos()
-                fecharModal()
-                limparFormularioAdicionarProduto()
-            }
-        })
-        .catch(err => console.error(err));
+    carregarProdutos()
+    fecharModal()
+    limparFormularioAdicionarProduto()
 }
 
 function limparFormularioAdicionarProduto() {
@@ -36,38 +32,29 @@ function fecharModal() {
     modalAddProduto.hide();
 }
 
-function carregarProdutos() {
-    const options = {
-        method: 'GET'
-    };
-
-    fetch('http://localhost:8080/produtos', options)
-        .then(response => {
-            if (response.status === 200) {
-                return response.json()
-            }
-        })
-        .then(responseBody => renderizarProdutos(responseBody))
-        .catch(err => console.error(err));
+async function carregarProdutos() {
+    let produtos = await listarProdutosClient();
+    renderizarProdutos(produtos);
 }
 
-function renderizarProdutos(responseBody) {
+function renderizarProdutos(produtos) {
     const tbody = document.getElementById("listagem-produtos");
     if (!tbody) return;
 
-    if (!responseBody || responseBody.length === 0) {
+    if (!produtos || produtos.length === 0) {
         tbody.innerHTML = '<tr><td colspan="5" class="text-center">Nenhum produto encontrado</td></tr>';
         return;
     }
 
-    const rows = responseBody.map(produto => {
+    const rows = produtos.map(produto => {
         const preco = typeof produto.preco === 'number' ? produto.preco : parseFloat(produto.preco || 0);
         const precoFormatado = `R$${preco.toFixed(2).replace('.', ',')}`;
 
         return `<tr>
                     <td>${produto.titulo || ''}</td>
                     <td>${produto.descricao || ''}</td>
-                    <td>${precoFormatado}</td><td>${produto.qtdEstoque != null ? produto.qtdEstoque : ''}</td>
+                    <td>${precoFormatado}</td>
+                    <td>${produto.qtdEstoque != null ? produto.qtdEstoque : ''}</td>
                     <td>
                         <div class="btn-group" role="group">
                             <button type="button" class="btn btn-outline-primary btn-sm" data-id="${produto.idProduto || ''}" data-action="editar">Editar</button>
@@ -90,18 +77,11 @@ function renderizarProdutos(responseBody) {
     });
 }
 
-function removerProduto(idProduto) {
-    const options = {
-        method: 'DELETE'
-    };
-
-    fetch(`http://localhost:8080/produtos/${idProduto}`, options)
-        .then(response => {
-            if (response.status === 200) {
-                carregarProdutos()
-            }
-        })
-        .catch(err => console.error(err));
+async function removerProduto(idProduto) {
+    let err = await removerProdutoClient(idProduto);
+    if (!err) {
+        carregarProdutos()
+    }
 }
 
 function initListeners() {
