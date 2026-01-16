@@ -38,6 +38,25 @@ export async function salvarProdutoClient(produto) {
         });
 }
 
+export async function atualizarProdutoClient(produto) {
+    const options = {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(produto)
+    };
+
+    return fetch(`${backendUrl()}/produtos`, options)
+        .then(response => {
+            if (response.status === 200) {
+                return null
+            }
+        })
+        .catch(err => {
+            console.error(err)
+            return err
+        });
+}
+
 export async function removerProdutoClient(idProduto) {
     const options = {
         method: 'DELETE'
